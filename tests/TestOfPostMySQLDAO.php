@@ -112,7 +112,7 @@ class TestOfPostMySQLDAO extends ThinkUpUnitTestCase {
             $builders[] = FixtureBuilder::build('posts', array('post_id'=>$counter, 'author_user_id'=>13,
             'author_username'=>'ev', 'author_fullname'=>'Ev Williams', 'author_avatar'=>'avatar.jpg', 
             'post_text'=>'This is post '.$counter, 'source'=>$source, 'pub_date'=>'2006-01-01 00:'.
-            $pseudo_minute.':00', 'reply_count_cache'=>rand(0, 4), 'is_protected'=>0,
+            $pseudo_minute.':00', 'reply_count_cache'=>($counter==10)?0:rand(0, 4), 'is_protected'=>0,
             'retweet_count_cache'=>floor($counter/2), 'network'=>'twitter',
             'old_retweet_count_cache' => floor($counter/3), 'in_rt_of_user_id' => null,
             'in_reply_to_post_id'=>null, 'in_retweet_of_post_id'=>null, 'is_geo_encoded'=>0));
@@ -2244,9 +2244,11 @@ class TestOfPostMySQLDAO extends ThinkUpUnitTestCase {
         $builders[] = FixtureBuilder::build('follows', array('user_id'=>13, 'follower_id'=>18));
         $builders[] = FixtureBuilder::build('follows', array('user_id'=>123456, 'follower_id'=>18));
         $dao = new PostMySQLDAO();
+
         $res = $dao->getPostsByFriends(18, 'twitter', 5, 1, false); // not public
         $this->assertEqual(count($res), 5);
-        $this->assertEqual($res[0]->author_user_id, 123456);
+        $this->assertEqual($res[0]->author_user_id, 13);
+
         $res = $dao->getPostsByFriends(18, 'twitter', 5, 1, true); // public
         $this->assertEqual(count($res), 5);
         $this->assertEqual($res[0]->author_user_id,13);
@@ -2592,5 +2594,47 @@ class TestOfPostMySQLDAO extends ThinkUpUnitTestCase {
 
         $post = $dao->getPost(10, 'twitter');
         $this->assertEqual($post->favlike_count_cache, 25);
+    }
+
+    public function testUpdateReplyCount() {
+        $dao = new PostMySQLDAO();
+        $post = $dao->getPost(10, 'twitter');
+        $this->assertEqual($post->reply_count_cache, 0);
+
+        // bad id
+        $update_cnt = $dao->updateReplyCount(-99, 'twitter', 25);
+        $this->assertEqual($update_cnt, 0);
+
+        // bad network
+        $update_cnt = $dao->updateReplyCount(10, 'no-net', 25);
+        $this->assertEqual($update_cnt, 0);
+
+        // good id
+        $update_cnt = $dao->updateReplyCount(10, 'twitter', 25);
+        $this->assertEqual($update_cnt, 1);
+
+        $post = $dao->getPost(10, 'twitter');
+        $this->assertEqual($post->reply_count_cache, 25);
+    }
+
+    public function testUpdateRetweetCount() {
+        $dao = new PostMySQLDAO();
+        $post = $dao->getPost(10, 'twitter');
+        $this->assertEqual($post->retweet_count_cache, 5);
+
+        // bad id
+        $update_cnt = $dao->updateRetweetCount(-99, 'twitter', 25);
+        $this->assertEqual($update_cnt, 0);
+
+        // bad network
+        $update_cnt = $dao->updateRetweetCount(10, 'no-net', 25);
+        $this->assertEqual($update_cnt, 0);
+
+        // good id
+        $update_cnt = $dao->updateRetweetCount(10, 'twitter', 25);
+        $this->assertEqual($update_cnt, 1);
+
+        $post = $dao->getPost(10, 'twitter');
+        $this->assertEqual($post->retweet_count_cache, 25);
     }
 }

@@ -1,9 +1,18 @@
 <?php
+/*
+ Plugin Name: Google+
+ Plugin URI: http://github.com/ginatrapani/thinkup/tree/master/webapp/plugins/googleplus/
+ Description: Capture and display Google+ posts.
+ Version: 0.01
+ Icon: assets/img/plugin_icon.png
+ Author: Gina Trapani
+ */
+
 /**
  *
- * ThinkUp/webapp/_lib/view/plugins/modifier.get_plugin_path.php
+ * ThinkUp/webapp/plugins/googleplus/controller/googleplus.php
  *
- * Copyright (c) 2009-2011 Gina Trapani
+ * Copyright (c) 2011 Gina Trapani
  *
  * LICENSE:
  *
@@ -23,25 +32,11 @@
 /**
  * @author Gina Trapani <ginatrapani[at]gmail[dot]com>
  * @license http://www.gnu.org/licenses/gpl.html
- * @copyright 2009-2011 Gina Trapani
+ * @copyright 2011 Gina Trapani
  */
-/*
- * Smarty plugin
- * -------------------------------------------------------------
- * File:     modifier.get_plugin_path.php
- * Type:     modifier
- * Name:     get_plugin_path
- * Purpose:  For special source (like Facebook pages) return the
- *           correct path to the ThinkUp plugin.
- *           @TODO: Figure out a better way to handle this.
- * -------------------------------------------------------------
- */
-function smarty_modifier_get_plugin_path($network) {
-    if ($network == "facebook page") {
-        return "facebook";
-    } elseif ($network == "google+") {
-        return "googleplus";
-    } else {
-        return $network;
-    }
-}
+
+$webapp = Webapp::getInstance();
+$webapp->registerPlugin('google+', 'GooglePlusPlugin');
+
+$crawler = Crawler::getInstance();
+$crawler->registerCrawlerPlugin('GooglePlusPlugin');
